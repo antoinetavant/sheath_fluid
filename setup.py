@@ -45,7 +45,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/antoinelpp/sheath_fluid',
-    download_url="https://github.com/antoinelpp/sheath_fluid/archive/0.1.tar.gz",
-    version='0.1.0',
+    download_url="https://github.com/antoinelpp/sheath_fluid/archive/0.2.tar.gz",
+    version='0.2.0',
     zip_safe=False,
 )
