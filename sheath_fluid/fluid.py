@@ -71,7 +71,7 @@ def _systemPIC(t, x, gamma, epsVal):
 class Plasma:
     """A plasma classe, with dimentions and stuffs"""
 
-    def __init__(self, Te0, ne0, L, mi, sigma, gamma=1, ionization=1, Niter=1000):
+    def __init__(self, Te0, ne0, L, mi, sigma, gamma=1, ionization=1, Niter=300):
         import plasmapy as ppy
 
         self.Te0 = Te0
@@ -80,7 +80,12 @@ class Plasma:
         self.mi = mi
         self.me = ppy.constants.m_e
         self.qe = ppy.constants.e.si
-        self.dphi = np.log(np.sqrt(self.mi / (2 * np.pi * self.me)))
+        self.gamma = gamma
+
+        if self.gamma == 1:
+            self.dphi = np.log(np.sqrt(self.mi / (2 * np.pi * self.me)))
+        else:
+            self.dphi = dphi(self.gamma) * u.V
         self.sigma = sigma
 
         self.cs = (np.sqrt(self.Te0 / self.mi)).decompose()
@@ -93,7 +98,6 @@ class Plasma:
         self.Niter = Niter
         self.solved = False
         self.ionization = ionization
-        self.gamma = gamma
 
     def normilize(self):
 
@@ -143,7 +147,9 @@ class Plasma:
 
         Te0 = 1
         # n0 = 1
-        return n0, u0, phi0, phidot0, Te0
+        v = [n0, u0, phi0, phidot0, Te0]
+        # print(v )
+        return v
         # return n0, u0, phi0, phidot0
 
     def nefromphi(self, phi):
@@ -162,7 +168,7 @@ class Plasma:
         elif self.ionization == 2:
             self.solver = solveODE(lambda t, x: _systemPIC(t, x, self.gamma, self.epsVal))
 
-        self.solver.set_integrator('dopri5')  # RK solver of 4rth order
+        self.solver.set_integrator('dopri5', nsteps=1000)  # RK solver of 4rth order
 
         t1 = self.l.decompose().value
         t0 = 0
@@ -224,6 +230,7 @@ class Plasma:
         if not self.solver.successful():
             print("Error in the solver !!")
             print(self.index)
+            print(self.solver.y)
             raise RuntimeError
 
     def denormilize(self):
@@ -263,8 +270,8 @@ class Plasma:
 
         ax1.plot(xcm, self.Te * self.dphi.decompose().value, label=f"$ {self.dphi.decompose().value:2.3}T_e$")
 
-        ax1.text(x1, phi1 * 0.9, "$4.68 T_e$")
-        ax1.text(x2, phi2 * 1.05, "$(4.68+1/2)T_e$")
+        ax1.text(x1, phi1 * 0.9, f"$ {self.dphi.decompose().value:2.3}T_e$")
+        ax1.text(x2, phi2 * 1.05, f"$( {self.dphi.decompose().value:2.3}+1/2)T_e$")
         ax1.set_ylim(0, phi2 * 1.2)
 
         ax2 = axarr[1]
